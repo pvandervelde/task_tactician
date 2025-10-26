@@ -55,7 +55,7 @@ This document defines component responsibilities using Responsibility-Driven Des
 
 - Determines required actions based on event type and current state
 - Executes issue workflow (assignment, labeling, branch creation)
-- Executes PR workflow (issue linking, label syncing)
+- Executes PR event monitoring (applies "has-pr" label based on GitHub's native issue links)
 - Validates business rules before applying actions
 - Generates workflow actions (CreateBranch, ApplyLabel, etc.)
 - Sequences actions in dependency order
@@ -221,8 +221,6 @@ This document defines component responsibilities using Responsibility-Driven Des
 - **Mapper**: Creates mappings between labels and workflow concepts
 - **Validator**: Ensures labels exist before use
 - **Cache Manager**: Reduces API calls through caching
-
-**Note**: GitHub's native PR-issue linking (via keywords in PR description) handles issue-PR relationships. Task-Tactician does not implement custom PR-issue linking.
 
 ---
 

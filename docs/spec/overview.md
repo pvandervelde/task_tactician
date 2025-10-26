@@ -8,6 +8,7 @@ Task-Tactician is a GitHub automation bot that streamlines issue workflow manage
 
 - **Automated Branch Creation**: Creates feature branches when issues move to "in progress" state
 - **Workflow Label Management**: Applies and updates labels tracking issue lifecycle (in-progress, blocked, has-pr)
+- **PR-Issue Workflow Labels**: Monitors PR events and applies "has-pr" label to issues when GitHub's native linking detects relationships
 - **Label Discovery**: Adapts to repository's existing labels rather than requiring specific label names
 - **State Tracking**: Monitors issue lifecycle from creation through completion
 - **Milestone Prompting**: Suggests milestone assignment on new issues (advisory)
@@ -18,8 +19,8 @@ Task-Tactician is a GitHub automation bot that streamlines issue workflow manage
 
 ### What Task-Tactician Does NOT Do
 
-- **Does NOT handle pull request workflows** (separate bot responsibility)
-- **Does NOT implement custom PR-issue linking** (GitHub native linking via "closes #123" is sufficient)
+- **Does NOT handle PR review/approval/merge workflows** (separate bot responsibility)
+- **Does NOT create PR-issue links** (relies on GitHub's native linking via "closes #123" keywords in PR descriptions)
 - **Does NOT create or manage labels** (discovers and uses existing repository labels)
 - **Does NOT persist state** (GitHub is source of truth)
 - **Does NOT auto-close issues** (only flags and tracks state)
@@ -69,7 +70,7 @@ C4Context
 | **Issue Lifecycle** | Progression through states: Open → InProgress → HasPR → Done |
 | **InProgress State** | Issue actively being worked on (has in-progress label or in "In Progress" column) |
 | **Branch Naming Convention** | Pattern: `{prefix}/{issue-number}-{slug}` where prefix based on issue type |
-| **PR-Issue Linking** | Association between pull request and related issue(s) |
+| **PR-Issue Linking** | GitHub's native association between pull request and issue (via keywords like "closes #123") |
 | **Configuration Hierarchy** | Precedence order: Repository > Organization > System Default |
 | **Idempotent Operation** | Operation producing same result regardless of execution count |
 | **Workflow Action** | Discrete operation: CreateBranch, ApplyLabel, RemoveLabel, etc. |
@@ -262,7 +263,7 @@ C4Context
 
 1. **Branch Creation Success Rate**: >95% of eligible issues get branches created
 2. **Event Processing Success Rate**: >99% of events processed successfully
-3. **PR-Issue Linking Accuracy**: >90% of PRs correctly linked to issues
+3. **Workflow Label Accuracy**: >95% of workflow state transitions result in correct label application
 4. **Configuration Availability**: >99% configuration load success rate
 
 ### Performance Metrics

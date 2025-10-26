@@ -27,9 +27,9 @@ A GitHub issue representing a work item.
 A GitHub pull request proposing code changes.
 
 - **Identified by**: PRNumber (unique within repository)
-- **Contains**: Title, description, source branch, target branch, state, linked issues
+- **Contains**: Title, description, source branch, target branch, state, linked issues (via GitHub's native linking)
 - **Lifecycle**: Open → Review → Approved → Merged/Closed
-- **Business Rules**: Must link to at least one issue; milestone should sync with linked issues
+- **Business Rules**: Should link to at least one issue (enforced by GitHub keywords like "closes #123"); Task-Tactician applies "has-pr" label to linked issues
 
 ### Branch
 
@@ -327,8 +327,9 @@ Duration from issue creation to closure.
 5. **All operations must be idempotent** - safe to replay events
 6. **Labels must exist in repository** - Task-Tactician does not create new labels
 7. **PR-issue linking supports multiple detection methods** - branch name, title, description
-8. **Workflow state transitions are event-driven** - no polling or scheduled jobs
-9. **Stale issues flagged after configured inactivity period** - default 30 days
-10. **Milestone prompting occurs on issue creation** - non-blocking suggestion
-11. **Dependencies tracked via issue description parsing** - simple keyword detection
-12. **Cycle time recorded on issue closure** - for analytics and planning
+5. **Workflow state transitions are event-driven** - no polling or scheduled jobs
+6. **PR-issue linking relies on GitHub's native mechanism** - Task-Tactician applies labels based on detected links
+7. **Stale issues flagged after configured inactivity period** - default 30 days
+8. **Milestone prompting occurs on issue creation** - non-blocking suggestion
+9. **Dependencies tracked via issue description parsing** - simple keyword detection
+10. **Cycle time recorded on issue closure** - for analytics and planning

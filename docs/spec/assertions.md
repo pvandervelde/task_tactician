@@ -177,8 +177,6 @@ This document defines testable behavioral assertions that specify how Task-Tacti
 - Missing labels logged as warnings (non-blocking)
 - Fallback strategy: use default or skip gracefully
 
-**Note**: GitHub's native PR-issue linking (via "closes #123" in PR description) is sufficient. Task-Tactician does not implement custom PR-issue linking workflows.
-
 ### WF-7: Workflow State Precedence
 
 **Assertion**: Blocked state takes precedence over InProgress.
@@ -194,6 +192,97 @@ This document defines testable behavioral assertions that specify how Task-Tacti
 - Label precedence: Blocked > HasPR > InProgress > Open
 - Configuration defines label mappings
 - State resolution pure function testable independently
+
+## PR Workflow Assertions
+
+### PR-1: Apply HasPR Label When PR Opened
+
+**Assertion**: When PR is opened with GitHub-created issue links, "has-pr" label applied to linked issues.
+
+**Given**: Issue #123 exists in Open or InProgress state
+**And**: PR #456 is opened with description containing "closes #123"
+**And**: GitHub creates native link between PR #456 and issue #123
+**When**: PR opened event processed
+**Then**: Task-Tactician retrieves linked issues from GitHub API
+**And**: "has-pr" label applied to issue #123
+**And**: Issue state transitions to HasPR workflow state
+
+**Acceptance Criteria**:
+
+- Task-Tactician uses GitHub API to get linked issues (does not parse PR description)
+- Label applied only if issue link exists in GitHub's data model
+- Multiple linked issues all receive "has-pr" label
+- Idempotent: duplicate events do not duplicate labels
+
+### PR-2: Remove HasPR Label When PR Closed
+
+**Assertion**: When PR is closed or merged, "has-pr" label removed from linked issues.
+
+**Given**: Issue #123 has "has-pr" label
+**And**: PR #456 is linked to issue #123
+**When**: PR #456 closed or merged event processed
+**Then**: "has-pr" label removed from issue #123
+**And**: Issue workflow state updated (returns to InProgress or Open based on other labels)
+
+**Acceptance Criteria**:
+
+- Label removed on both close and merge events
+- If issue has multiple linked PRs, label only removed when all PRs closed
+- Label removal is idempotent
+
+### PR-3: PR Without Issue Links Skipped
+
+**Assertion**: PRs without GitHub-created issue links do not trigger label updates.
+
+**Given**: PR #789 opened without "closes" keywords
+**And**: GitHub creates no issue links for PR #789
+**When**: PR opened event processed
+**Then**: Task-Tactician queries linked issues (empty result)
+**And**: No label operations performed
+**And**: Event logged as "PR has no linked issues"
+**And**: Event processed successfully (not an error)
+
+**Acceptance Criteria**:
+
+- Empty linked issues list is valid (not an error)
+- No spurious warnings logged
+- Processing continues normally
+
+### PR-4: Invalid Issue Reference Handling
+
+**Assertion**: PR linking to non-existent issue handled gracefully.
+
+**Given**: PR #999 references "closes #88888"
+**And**: Issue #88888 does not exist
+**And**: GitHub does not create link (invalid reference)
+**When**: PR opened event processed
+**Then**: Task-Tactician queries linked issues (empty or error)
+**And**: No label operations attempted
+**And**: Warning logged if GitHub API returns error
+**And**: Event processed successfully
+
+**Acceptance Criteria**:
+
+- Invalid references handled gracefully
+- No label application to non-existent issues
+- Log indicates issue validation failure
+
+### PR-5: PR Linking Detection via GitHub API
+
+**Assertion**: Task-Tactician detects PR-issue links via GitHub API, not by parsing PR descriptions.
+
+**Given**: PR #555 with description "This fixes the authentication bug (see #123)"
+**And**: GitHub native linking detects "fixes #123" and creates link
+**When**: Task-Tactician processes PR event
+**Then**: Linked issues retrieved via GitHub API endpoint `/repos/{owner}/{repo}/pulls/{pr_number}` (includes `closed_by` relationship)
+**And**: Task-Tactician does NOT parse PR description text
+**And**: Relies on GitHub's link detection logic
+
+**Acceptance Criteria**:
+
+- Uses GitHub API data structure for linked issues
+- No text parsing of PR descriptions
+- Supports all GitHub linking keywords (closes, fixes, resolves, etc.) automatically
 
 ## Configuration Assertions
 

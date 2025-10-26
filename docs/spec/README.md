@@ -21,9 +21,9 @@ Task-Tactician operates as an event-driven service that:
 
 - Automatically create feature branches when issues move to "in progress"
 - Apply and update workflow labels based on issue state transitions
-- Link pull requests to issues and maintain relationship metadata
-- Track PR lifecycle from creation through merge
-- Ensure ordered event processing per issue/PR to maintain consistency
+- Monitor PR events and apply "has-pr" labels to issues based on GitHub's native linking
+- Track issue lifecycle from creation through completion
+- Ensure ordered event processing per repository to maintain consistency
 
 ## Architecture Overview
 

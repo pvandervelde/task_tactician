@@ -84,6 +84,29 @@ Core operations that embody workflow rules:
 - `IGitHubOperations::get_repository_labels()` - discover available labels
 - `ILogger::log_info/warn()` - record operations
 
+#### PR Workflow Processing
+
+**Operation**: `process_pr_event(event: WorkflowEvent) -> Result<Vec<WorkflowAction>, WorkflowError>`
+
+**Business Rules**:
+
+1. When PR is opened, detect GitHub-created links to issues via PR metadata
+2. Apply "has-pr" label to all linked issues
+3. When PR is closed or merged, remove "has-pr" label from linked issues
+4. Only process PRs that have valid issue links
+5. Validate linked issues exist before label application
+6. Log PR-issue relationships for traceability
+
+**Dependencies** (via interfaces):
+
+- `IConfigurationStore::get_repository_config()` - retrieve label mappings
+- `IGitHubOperations::get_pull_request()` - fetch PR data and linked issues
+- `IGitHubOperations::apply_label()` - apply "has-pr" to issues
+- `IGitHubOperations::remove_label()` - remove "has-pr" from issues
+- `ILogger::log_info/warn()` - record operations
+
+**Note**: Task-Tactician relies on GitHub's native PR-issue linking (via keywords like "closes #123" in PR descriptions). It does NOT create these links, but reacts to PR events to update issue workflow labels.
+
 #### Label Discovery and Validation
 
 **Operation**: `discover_workflow_labels(repository: RepositoryId, config: LabelConfig) -> Result<ValidatedLabelConfig, WorkflowError>`
@@ -107,8 +130,6 @@ Core operations that embody workflow rules:
 - `IGitHubOperations::get_repository_labels()` - fetch available labels
 - `IConfigurationStore::get_repository_config()` - get label preferences
 - `ILogger::log_info/warn()` - record label discovery
-
-**Note**: GitHub native PR-issue linking is sufficient (via keywords in PR description). No custom linking workflow needed.
 
 #### Branch Name Generation
 
@@ -179,6 +200,10 @@ trait IGitHubOperations {
     fn apply_label(repository: RepositoryId, issue_number: IssueNumber, label: LabelName) -> Result<(), GitHubError>
     fn remove_label(repository: RepositoryId, issue_number: IssueNumber, label: LabelName) -> Result<(), GitHubError>
     fn add_comment(repository: RepositoryId, issue_number: IssueNumber, comment: CommentText) -> Result<(), GitHubError>
+
+    // Pull Request operations
+    fn get_pull_request(repository: RepositoryId, pr_number: PRNumber) -> Result<PullRequest, GitHubError>
+    fn get_linked_issues(repository: RepositoryId, pr_number: PRNumber) -> Result<Vec<IssueNumber>, GitHubError>
 
     // Label operations
     fn get_repository_labels(repository: RepositoryId) -> Result<Vec<Label>, GitHubError>
